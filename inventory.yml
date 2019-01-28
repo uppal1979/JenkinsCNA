@@ -3,6 +3,7 @@ info:
   description: This is a simple inventory API
   version: 1.0.0
   title: Inventory API
+host: localhost:8080
 basePath: /
 tags:
 - name: sku
