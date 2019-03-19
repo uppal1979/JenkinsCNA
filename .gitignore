@@ -1,0 +1,8 @@
+.*
+*.iml
+!.gitignore
+!.gitlab
+target
+bin
+mvnw
+mvnw.cmd
