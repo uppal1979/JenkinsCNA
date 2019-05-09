@@ -44,7 +44,7 @@ paths:
         schema:
           $ref: "#/definitions/ProductPayload"
       responses:
-        204:
+        201:
           description: New product added
         400:
           description: Invalid product payload
