@@ -44,7 +44,7 @@ paths:
           schema:
             $ref: '#/definitions/SKUPayload'
       responses:
-        204:
+        201:
           description: New SKU added
         400:
           description: Invalid input
