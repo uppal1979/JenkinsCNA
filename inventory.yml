@@ -22,8 +22,6 @@ paths:
       summary: List available SKUs
       description: Lists all available SKUs
       operationId: getSKUs
-      parameters: 
-      - $ref: '#/parameters/productId'
       responses:
         200:
           description: List of SKUs
