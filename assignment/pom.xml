@@ -13,6 +13,8 @@
 
   <modules>
     <module>inventory-service</module>
+    <module>catalog-service</module>
+    <module>eureka-server</module>
   </modules>
 
 </project>
