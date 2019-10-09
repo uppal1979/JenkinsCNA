@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: inventory-service
+  name: inventory-service
+  namespace: jose2317
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+      - image: josephkevin/inventory-service
+        imagePullPolicy: Always
+        name: inventory-service

@@ -1,0 +1,149 @@
+swagger: "2.0"
+info:
+  description: This is a simple inventory API
+  version: 1.0.0
+  title: Inventory API
+host: localhost:8080
+basePath: /
+tags:
+- name: sku
+  description: Inventory stock keeping unit (SKU)
+produces: 
+  - application/json
+consumes: 
+  - application/json
+schemes:
+- http
+paths:
+  /skus:
+    get:
+      tags:
+      - sku
+      summary: List available SKUs
+      description: Lists all available SKUs
+      operationId: getSKUs
+      responses:
+        200:
+          description: List of SKUs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SKU'
+    post:
+      tags:
+      - sku
+      summary: Add a new SKU
+      description: Add a new SKU to the inventory
+      operationId: addSKU
+      parameters:
+        - name: SKU
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SKUPayload'
+      responses:
+        201:
+          description: New SKU added
+        400:
+          description: Invalid input
+  /skus/{id}:
+    parameters: 
+      - $ref: '#/parameters/skuId'
+    get:
+      tags:
+      - sku
+      summary: Get SKU
+      description: Display a single SKU
+      operationId: getSKU
+      responses:
+        200:
+          description: SKU with id
+          schema:
+            $ref: '#/definitions/SKU'
+        404:
+          description: SKU Not found
+    put:
+      tags:
+      - sku
+      summary: Update a SKU
+      description: Updates the SKU
+      operationId: updateSKU
+      responses:
+        200:
+          description: Updated SKU
+          schema:
+            $ref: '#/definitions/SKU'
+        400:
+          description: Invalid SKU payload
+        404:
+          description: SKU not found
+    delete:
+      tags: 
+      - sku
+      summary: Delete SKU
+      description: Deletes a SKU from inventory
+      responses:
+        200:
+          description: OK
+        404:
+          description: SKU not found
+parameters:
+  skuId:
+    name: id
+    in: path
+    required: true
+    description: SKU unique identifier
+    type: number
+    format: int64
+  productId:
+    name: id
+    in: path
+    required: true
+    description: Product unique identifier
+    type: number
+    format: int64
+  category:
+    name: category
+    in: query
+    description: category on which to filter on
+    type: string
+definitions:
+  ID:
+    description: Unique identifier
+    type: integer
+    format: int64
+  SKUPayload:
+    type: "object"
+    required: 
+    - productId
+    properties:
+      productId:
+        description: Reference to the product
+        type: number
+        format: int64
+      name:
+        description: Name of the SKU
+        type: "string"
+        maxLength: 100
+      description:
+        description: Detailed SKU description
+        type: "string"
+        maxLength: 500
+      price:
+        description: Price of the SKU
+        type: number
+        format: float
+      count:
+        description: Number of items of this SKU available in inventory
+        type: number
+        format: int64
+  SKU:
+    type: "object"
+    allOf: 
+    - $ref: '#/definitions/SKUPayload'
+    required: 
+    - id
+    - productId
+    properties:
+      id:
+        $ref: '#/definitions/ID'

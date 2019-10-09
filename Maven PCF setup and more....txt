@@ -1,0 +1,212 @@
+To point git from one repository to another...
+https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow	..how to work with branches
+git remote -v			...points to git repository
+git remote add origin git@gitlab.com:josephkevin/cna.git
+git remote set-url origin https://gitlab.com...cna-store.git
+git clone https://gitlab.com...cna-store.git	...downloads master and all branches
+git checkout -b <branchname/master>	..switches over to the branch...and you can view the code for that branch
+git push origin assignment1:k8s	..to create a branch k8s, which is similar to assignment1 branch
+git branch -a 			...show all branches in the repository 
+git checkout master			.. to switch to a different branch...in this case master!
+git push -u origin assignment2a	..push code to branch "assignment2a"
+git config --global user.email "joseph.kevin@wipro.com"
+git config --global user.name "Joseph Kevin Antao"
+
+To run locally...
+mvn package	...from outside service folder. This will creata a jar in /service/target folder
+java -jar inventory-service-0.0.1-SNAPSHOT.jar	...to execute the application
+
+Maven setup
+Add maven bin directory to PATH environment variable by following either of the below approaches: 
+1. Search for “Edit environment variables for your account” from the search bar or
+2. Run rundll32 sysdm.cpl,EditEnvironmentVariables from the command prompt (cmd.exe) to apply the changes for all future command prompts
+3. Set locally in command prompt using
+
+set MAVEN_HOME=C:\Users\IEUser\software\apache-maven-3.6.0 .....the version may differ on downloaded version
+set PATH=%PATH%;%MAVEN_HOME%\bin
+
+Wipro specific steps...
+1. Wipro proxy requires user credentials so, encrypt the password which will be configured in maven (Refer Password Encryption)
+mvn --encrypt-master-password 
+
+{vZRlxvijIYQHBSEfl8Xu9/vxasl/5bkOHfN8C3ivX4Y=}
+
+2. Create a file at ${user.home}/.m2/settings-security.xml replacing the contents of the master tag with the encrypted password from the previous step. ${user.home} will be C:\Users\IEUser (where IEUser is the currently logged in user)
+
+<settingsSecurity>
+  <master>{jSMOWnoPFgsHVpMvz5VrIt5kRbzGpI8u+9EF1iFQyJQ=}</master>
+</settingsSecurity> 
+
+3. Now run the following command and enter your AD password when prompted for password
+mvn --encrypt-password 
+
+{hakBZlriMIYHStd+qOsr0gHScO6b/5p089vGOKpwux4=}
+
+4. 
+Create a file at ${user.home}/.m2/settings.xml with the following contents replacing password with the string from the previous step
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+   <proxies>
+     <proxy>
+       <id>optional</id>
+       <active>true</active>
+       <protocol>http</protocol>
+       <host>proxy1.wipro.com</host>
+       <port>8080</port>
+       <username>AD Id</username>
+       <password>{COQLCE6DU6GtcS5P=}</password>
+       <nonProxyHosts>localhost|wipro.com</nonProxyHosts>
+     </proxy>
+   </proxies>
+</settings>
+
+
+To run a jar in PCF.....
+
+cf login -a api.run.pivotal.io
+cf apps
+cf delete -r inventory-service
+cf push -p inventory-service-0.0.1-SNAPSHOT.jar inventory-service --random-route
+
+CF CLI Installtion on ubuntu linux
+Register for a trial PCF account by going to https://account.run.pivotal.io/sign-up. 
+https://docs.pivotal.io/pivotalcf/2-3/cf-cli/install-go-cli.html
+1. Add the Cloud Foundry Foundation public key and package repository to your system
+wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
+echo "deb https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+2. Update your local package index:
+sudo apt-get update
+3. Install the cf CLI:
+sudo apt-get install cf-cli
+
+Refer to the following url for detailed command reference http://docs.cloudfoundry.org/cf-cli/cf-help.html
+Some common command we will be using are
+# Login to PCF
+cf login -a api.run.pivotal.io
+# List applications
+cf apps
+cf delete -r inventory-service
+cf push -p inventory-service-0.0.1-SNAPSHOT.jar inventory-service --random-route
+# List available services in the marketplace
+cf marketplace
+# Get plans for a specific service
+cf marketplace -s <service>
+# List services
+cf services
+# Create a service
+cf create-service <service> <plan> <service-name>
+# Bind a service to an application
+cf bind-service <app> <service-name>
+# Unbind a service from an application
+cf unbind-service <app> <service-name>
+# List environment variables for an application
+cf env <app>
+# Set environment variable for an application
+cf set-env <app> <name> <value>
+For configuring proxy for cf CLI refer https://docs.run.pivotal.io/cf-cli/http-proxy.html
+
+
+To deploy a Docker Image in PCF............
+Sample Dockerfile
+FROM openjdk:8-jre-alpine
+RUN mkdir /app
+WORKDIR /app
+ADD target/inventory-service-0.0.1-SNAPSHOT.jar app.jar
+CMD java -jar ./app.jar
+
+Command to be executed
+docker build -t cna/inventory .		...image "cna/inventory" built from Dockerfile
+docker run -p 8000:8080 cna/inventory	...execution of image, exposing container port 8080 to host machine:8000
+docker login
+docker tag cna/inventory josephkevin/cna-inventory	...tags local image to the docker hub repository
+docker images josephkevin/*
+docker push josephkevin/cna-inventory	..image pushed to docker hub
+
+cf push --docker-image josephkevin/cna-inventory inventory-service --random-route	...push docker image & bring up the app on Cloud Foundry
+
+
+To deploy to kubernetes: It appears that deployment can happen only from an image pulled from docker hub. Hence image is created, pushed to docker hub and pulled from there to create a deployment
+
+1. Build container image
+docker build -t <your dockerhub here>/inventory-service
+2. Create container repository of name <your dockerhub here>/inventory-service at Docker Hub. Login & push to docker hub
+docker login
+# provide your credentials
+docker push <your dockerhub here>/inventory-service
+
+3. Configure kubectl
+upload config.json and move to .kube folder
+kubectl version		...verify if client and server details are specified
+
+4. Create a deployment
+kubectl create deployment inventory-service \
+    --image=<your dockerhub here>/inventory-service
+Alternatively you can also create deployment.yml which can be used to create the deployment using
+kubectl create -f deployment.yml
+
+kubectl get pods
+kubectl get deploy
+kubectl get service
+kubectl get all
+kubectl logs <pod-name>
+
+5. Expose the deployment through a service
+
+kubectl expose deployment/inventory-service \
+    --port 80 --target-port=8080 \
+    --type=LoadBalancer --name=inventory-service
+Alternatively you can use the service.yml
+kubectl create -f service.yml
+Access the application via the public LoadBalancer IP
+
+PUBLIC_IP=$(kubectl get svc/inventory-service -o 'jsonpath={.status.loadBalancer.ingress[0].ip}')
+# get skus
+curl http://${PUBLIC_IP}/skus
+# create a sku
+curl -XPOST -H 'Content-Type: application/json' \
+-d '{"productId":1,"name":"one","description":"this is sku number one","price":3.5,"count":10}' \
+http://${PUBLIC_IP}/skus
+
+
+kubectl delete -f deployment.yml -f service.yml
+
+deployment.yml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: inventory-service
+  name: inventory-service
+  namespace: <your namespace here>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+      - image: <your dockerhub here>/cna-inventory-service
+        imagePullPolicy: Always
+        name: inventory-service
+service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: inventory-service
+  name: inventory-service
+  namespace: <your namespace here>
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: inventory-service
+  type: LoadBalancer

@@ -1,0 +1,159 @@
+swagger: "2.0"
+info:
+  description: This is a simple product catalog API
+  version: 1.0.0
+  title: Catalog API
+host: localhost:8081
+basePath: /
+tags:
+- name: product
+  description: Everything about your Product
+produces:
+- application/json
+consumes:
+- application/json
+schemes:
+- http
+paths:
+  /products:
+    get:
+      tags:
+      - product
+      summary: List available products
+      description: Lists all available products
+      operationId: getProducts
+      parameters:
+      - $ref: '#/parameters/catalog'
+      responses:
+        200:
+          description: List of products
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Product'
+    post:
+      tags:
+      - product
+      summary: Add a new product
+      description: Add a new product to the catalog
+      operationId: addProduct
+      parameters:
+      - name: Product
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/ProductPayload"
+      responses:
+        201:
+          description: New product added
+        400:
+          description: Invalid product payload
+  /products/{id}:
+    parameters:
+    - $ref: '#/parameters/productId'
+    get:
+      tags:
+      - product
+      summary: Get a single product
+      description: Display a single product
+      operationId: getProduct
+      responses:
+        200:
+          description: Product with id
+          schema:
+            $ref: '#/definitions/ProductDetail'
+        404:
+          description: Not found
+    put:
+      tags:
+      - product
+      summary: Update a product
+      description: Updates the name or category of a product
+      operationId: updateProduct
+      responses:
+        200:
+          description: Updated product
+          schema:
+            $ref: '#/definitions/ProductPayload'
+        400:
+          description: Invalid product payload
+        404:
+          description: Product not found
+    delete:
+      tags:
+      - product
+      summary: Delete a product
+      description: Deletes a product from catalog
+      responses:
+        200:
+          description: OK
+        404:
+          description: Product not found
+parameters:
+  productId:
+    name: id
+    in: path
+    required: true
+    description: Product unique identifier
+    type: number
+    format: int64
+  catalog:
+    name: catalog
+    in: query
+    description: catalog on which to filter on
+    type: string
+definitions:
+  ID:
+    type: integer
+    format: int64
+  ProductPayload:
+    type: "object"
+    required:
+    - catalog
+    properties:
+      name:
+        type: "string"
+        maxLength: 100
+      catalog:
+        type: string
+  Product:
+    type: "object"
+    allOf:
+    - $ref: '#/definitions/ProductPayload'
+    required:
+    - id
+    properties:
+      id:
+        $ref: '#/definitions/ID'
+  ProductDetail:
+    type: "object"
+    allOf:
+    - $ref: '#/definitions/Product'
+    properties:
+      skus:
+        type: array
+        items:
+          $ref: '#/definitions/SKU'
+  SKU:
+    type: "object"
+    required:
+    - id
+    properties:
+      id:
+        $ref: '#/definitions/ID'
+      name:
+        description: Name of the SKU
+        type: "string"
+        maxLength: 100
+      description:
+        description: Detailed SKU description
+        type: "string"
+        maxLength: 500
+      price:
+        description: Price of the SKU
+        type: number
+        format: float
+      count:
+        description: Number of items of this SKU available in inventory
+        type: number
+        format: int64
