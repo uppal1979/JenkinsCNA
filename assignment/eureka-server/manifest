@@ -1,0 +1,5 @@
+applications:
+- name: jenkins-cna
+  instances: 1
+  memory: 800m
+  path: /target/eureka-server-0.0.1-SNAPSHOT.jar
